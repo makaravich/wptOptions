@@ -37,28 +37,42 @@ class wptSettings
         // @todo Tab support
     }
 
-    public function singleSettingsPage( $model = [] )
-    {
-        $this->model = $model;
-        add_action( 'admin_menu', [ $this, 'add_options_page' ] );
-        add_action( 'admin_init', [ $this, 'register_settings_page' ] );
-    }
+	/**
+	 * Adds a settings page
+	 *
+	 * @param $model
+	 *
+	 * @return void
+	 */
+	public function singleSettingsPage( $model = [] ) {
+		$this->model = $model;
+		add_action( 'admin_menu', [ $this, 'add_options_page' ] );
+		add_action( 'admin_init', [ $this, 'register_settings_page' ] );
+	}
 
-    public function add_options_page()
-    {
-        add_submenu_page(
-            'options-general.php',
-            $this->model[ 'page_title' ],
-            $this->model[ 'menu_title' ],
-            'manage_options',
-            $this->model[ 'id' ] . '-options',
-            [ $this, 'options_page_output' ]
-        );
-    }
+	/**
+	 * Defines the options page
+	 *
+	 * @return void
+	 */
+	public function add_options_page() {
+		add_submenu_page(
+			'options-general.php',
+			$this->model[ 'page_title' ],
+			$this->model[ 'menu_title' ],
+			'manage_options',
+			$this->model[ 'id' ] . '-options',
+			[ $this, 'options_page_output' ]
+		);
+	}
 
-    public function options_page_output()
-    {
-        ?>
+	/**
+	 * Renders the options page
+	 *
+	 * @return void
+	 */
+	public function options_page_output() {
+		?>
         <div class="wrap">
             <h2><?php echo get_admin_page_title() ?></h2>
 
@@ -103,9 +117,10 @@ class wptSettings
                         $this->model[ 'id' ] . '_settings_page',
                         $this->model[ 'id' ] . '_' . $group_id . '_' . $section_id . '_section',
                         [
-                            'id'      => $field_id,
-                            'long_id' => $group_id . '_' . $section_id . '_' . $field_id,
-                            'type'    => $field[ 'type' ] ?? 'text',
+                            'id'         => $field_id,
+                            'long_id'    => $group_id . '_' . $section_id . '_' . $field_id,
+                            'type'       => $field[ 'type' ] ?? 'text',
+                            'attributes' => $field[ 'attributes' ] ?? null,
                         ]
                     );
 
@@ -157,8 +172,80 @@ class wptSettings
         ?>
         <textarea class="<?php echo $this->model[ 'id' ] ?>-input" type="text" <?php echo $attributes ?>
                   name="<?php echo $this->model[ 'id' ] ?>[<?php echo $args[ 'long_id' ] ?>]"><?php echo esc_attr( $val ) ?></textarea>
-        <?php
-    }
+		<?php
+	}
+
+	/**
+	 * Renders field with WP Editor
+	 *
+	 * @param $args
+	 */
+	private function fill_wp_editor( $args ) {
+
+		$val        = $this->get_option( $args[ 'long_id' ] );
+		$attributes = $args[ 'attributes' ] ?? '';
+
+		$params = [
+			'wpautop'          => 1,
+			'media_buttons'    => 1,
+			'textarea_name'    => $this->model[ 'id' ] . '[' . $args[ 'long_id' ] . ']',
+			'textarea_rows'    => 20,
+			'tabindex'         => null,
+			'editor_css'       => '',
+			'editor_class'     => '',
+			'teeny'            => 0,
+			'dfw'              => 0,
+			'tinymce'          => 1,
+			'quicktags'        => 1,
+			'drag_drop_upload' => false,
+		];
+
+		wp_editor( $val, $this->model[ 'id' ], $params );
+
+	}
+
+	/**
+	 * Renders field with email
+	 *
+	 * @param $args
+	 */
+	private function fill_email( $args ) {
+		$val = $this->get_option( $args[ 'long_id' ] );
+		?>
+        <input class="<?php echo $this->model[ 'id' ] ?>" type="email"
+               name="<?php echo $this->model[ 'id' ] ?>[<?php echo $args[ 'long_id' ] ?>]"
+               value="<?php echo esc_attr( $val ) ?>"/>
+		<?php
+	}
+
+	/**
+	 * Renders field with select
+	 *
+	 * @param $args
+	 */
+	private function fill_select( $args ) {
+
+		$val        = $this->get_option( $args[ 'long_id' ] );
+		$attributes = $args[ 'attributes' ] ?? '';
+		$options    = $args[ 'options' ] ?? [];
+
+		?>
+        <select class="<?php echo $this->model[ 'id' ] ?>-select" <?php echo $attributes ?>
+                name="<?php echo $this->model[ 'id' ] ?>[<?php echo $args[ 'long_id' ] ?>]">
+			<?php
+			foreach ( $options as $key => $option ) {
+				$selected = $key == $val ? ' selected="selected" ' : '';
+				?>
+                <option value="<?php echo $key ?>" <?php echo $selected ?>>
+					<?php echo $option ?>
+                </option>
+				<?php
+			}
+			?>
+
+        </select>
+		<?php
+	}
 
     /**
      * Renders field with checkbox
