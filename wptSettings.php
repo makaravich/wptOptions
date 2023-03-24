@@ -17,18 +17,31 @@ class wptSettings {
 	/**
 	 * @var array
 	 */
-	protected $model;
+	protected array $model;
+
+	/**
+	 * @var bool
+	 */
+	protected bool $model_from_file = false;
 
 	public function __construct( $model = [] ) {
+
+		if ( is_string( $model ) && file_exists( $model ) ) {
+			$model                 = json_decode( file_get_contents( $model ), true );
+			$this->model_from_file = true;
+		}
+
+		$this->model = $model;
+
 		if ( isset( $model['tabs'] ) ) {
-			$this->settings_page_with_tabs( $model );
+			$this->settings_page_with_tabs();
 		} else {
-			$this->single_settings_page( $model );
+			$this->single_settings_page();
 		}
 
 	}
 
-	public function settings_page_with_tabs( $model = [] ) {
+	public function settings_page_with_tabs(): void {
 		// The Tabs feature did not implement yet
 		// @todo Tab support
 	}
@@ -40,8 +53,8 @@ class wptSettings {
 	 *
 	 * @return void
 	 */
-	public function single_settings_page( $model = [] ) {
-		$this->model = $model;
+	public function single_settings_page(): void {
+
 		add_action( 'admin_menu', [ $this, 'add_options_page' ] );
 		add_action( 'admin_init', [ $this, 'register_settings_page' ] );
 	}
@@ -51,7 +64,7 @@ class wptSettings {
 	 *
 	 * @return void
 	 */
-	public function add_options_page() {
+	public function add_options_page(): void {
 		add_submenu_page(
 			'options-general.php',
 			$this->model['page_title'],
@@ -67,7 +80,7 @@ class wptSettings {
 	 *
 	 * @return void
 	 */
-	public function options_page_output() {
+	public function options_page_output(): void {
 		?>
         <div class="wrap">
             <h2><?php echo get_admin_page_title() ?></h2>
@@ -87,7 +100,7 @@ class wptSettings {
 	 * Register Settings.
 	 * All options will be stored in Array. Not one value - one option
 	 */
-	function register_settings_page() {
+	function register_settings_page(): void {
 		foreach ( $this->model['groups'] as $group_id => $group ) {
 			//Whole Setting's Group
 			register_setting(
@@ -129,7 +142,7 @@ class wptSettings {
 	 *
 	 * @param $args
 	 */
-	public function fill_settings_field( $args ) {
+	public function fill_settings_field( $args ): void {
 		$type_func = 'fill_' . strtolower( $args['type'] );
 
 		if ( is_callable( [ $this, $type_func ] ) ) {
@@ -142,7 +155,7 @@ class wptSettings {
 	 *
 	 * @param $args
 	 */
-	private function fill_text( $args ) {
+	private function fill_text( $args ): void {
 
 		$val = $this->get_option( $args['long_id'] );
 		?>
@@ -157,7 +170,7 @@ class wptSettings {
 	 *
 	 * @param $args
 	 */
-	private function fill_textarea( $args ) {
+	private function fill_textarea( $args ): void {
 
 		$val        = $this->get_option( $args['long_id'] );
 		$attributes = $args['attributes'] ?? '';
@@ -172,7 +185,7 @@ class wptSettings {
 	 *
 	 * @param $args
 	 */
-	private function fill_wp_editor( $args ) {
+	private function fill_wp_editor( $args ): void {
 
 		$val        = $this->get_option( $args['long_id'] );
 		$attributes = $args['attributes'] ?? '';
@@ -201,7 +214,7 @@ class wptSettings {
 	 *
 	 * @param $args
 	 */
-	private function fill_email( $args ) {
+	private function fill_email( $args ): void {
 		$val = $this->get_option( $args['long_id'] );
 		?>
         <input class="<?php echo $this->model['id'] ?>" type="email"
@@ -215,7 +228,7 @@ class wptSettings {
 	 *
 	 * @param $args
 	 */
-	private function fill_select( $args ) {
+	private function fill_select( $args ): void {
 
 		$val        = $this->get_option( $args['long_id'] );
 		$attributes = $args['attributes'] ?? '';
@@ -244,7 +257,7 @@ class wptSettings {
 	 *
 	 * @param $args
 	 */
-	private function fill_checkbox( $args ) {
+	private function fill_checkbox( $args ): void {
 		$val = $this->get_option( $args['long_id'] );
 		?>
         <input class="<?php echo $this->model['id'] ?>-input" type="checkbox"
@@ -257,7 +270,7 @@ class wptSettings {
 	 *
 	 * @param $args
 	 */
-	private function fill_password( $args ) {
+	private function fill_password( $args ): void {
 
 		$val = $this->get_option( $args['long_id'] );
 		?>
@@ -274,7 +287,7 @@ class wptSettings {
 	 *
 	 * @return mixed|null
 	 */
-	public function get_option( $option ) {
+	public function get_option( $option ): mixed {
 		$val = get_option( $this->model['id'] );
 
 		return $val[ $option ] ?? null;
