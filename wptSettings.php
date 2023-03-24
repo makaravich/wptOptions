@@ -9,33 +9,29 @@
  *
  * @changlog https://github.com/makaravich/wptOptions/blob/main/changelog.md
  *
- * @version 0.0.1
+ * @version 0.0.3
  *
  */
 
-class wptSettings
-{
-    /**
-     * @var array
-     */
-    protected $model;
+class wptSettings {
+	/**
+	 * @var array
+	 */
+	protected $model;
 
-    public function __construct( $model = [] )
-    {
-        if ( isset( $model[ 'tabs' ] ) ) {
-            $this->settingsPageWithTabs( $model );
-        }
-        else {
-            $this->singleSettingsPage( $model );
-        }
+	public function __construct( $model = [] ) {
+		if ( isset( $model['tabs'] ) ) {
+			$this->settings_page_with_tabs( $model );
+		} else {
+			$this->single_settings_page( $model );
+		}
 
-    }
+	}
 
-    public function settingsPageWithTabs( $model = [] )
-    {
-        // The Tabs feature did not implement yet
-        // @todo Tab support
-    }
+	public function settings_page_with_tabs( $model = [] ) {
+		// The Tabs feature did not implement yet
+		// @todo Tab support
+	}
 
 	/**
 	 * Adds a settings page
@@ -44,7 +40,7 @@ class wptSettings
 	 *
 	 * @return void
 	 */
-	public function singleSettingsPage( $model = [] ) {
+	public function single_settings_page( $model = [] ) {
 		$this->model = $model;
 		add_action( 'admin_menu', [ $this, 'add_options_page' ] );
 		add_action( 'admin_init', [ $this, 'register_settings_page' ] );
@@ -58,10 +54,10 @@ class wptSettings
 	public function add_options_page() {
 		add_submenu_page(
 			'options-general.php',
-			$this->model[ 'page_title' ],
-			$this->model[ 'menu_title' ],
+			$this->model['page_title'],
+			$this->model['menu_title'],
 			'manage_options',
-			$this->model[ 'id' ] . '-options',
+			$this->model['id'] . '-options',
 			[ $this, 'options_page_output' ]
 		);
 	}
@@ -77,101 +73,97 @@ class wptSettings
             <h2><?php echo get_admin_page_title() ?></h2>
 
             <form action="options.php" method="POST">
-                <?php
-                settings_fields( $this->model[ 'id' ] . '_options_group' ); // hidden protection fields
-                do_settings_sections( $this->model[ 'id' ] . '_settings_page' ); // Sections with options. We have only single 'woi_section_general'
-                submit_button( $this->model[ 'save_button' ] ?? __( 'Save', 'wpt' ) );
-                ?>
+				<?php
+				settings_fields( $this->model['id'] . '_options_group' ); // hidden protection fields
+				do_settings_sections( $this->model['id'] . '_settings_page' ); // Sections with options. We have only single 'woi_section_general'
+				submit_button( $this->model['save_button'] ?? __( 'Save', 'wpt' ) );
+				?>
             </form>
         </div>
-        <?php
-    }
+		<?php
+	}
 
-    /**
-     * Register Settings.
-     * All options will be stored in Array. Not one value - one option
-     */
-    function register_settings_page()
-    {
-        foreach ( $this->model[ 'groups' ] as $group_id => $group ) {
-            //Whole Setting's Group
-            register_setting(
-                $this->model[ 'id' ] . '_options_group',
-                $this->model[ 'id' ],
-                'sanitize_callback'
-            );
-            foreach ( $group[ 'sections' ] as $section_id => $section ) {
-                //Register Sections
-                add_settings_section(
-                    $this->model[ 'id' ] . '_' . $group_id . '_' . $section_id . '_section',
-                    $section[ 'title' ],
-                    '',
-                    $this->model[ 'id' ] . '_settings_page'
-                );
-                foreach ( $section[ 'fields' ] as $field_id => $field ) {
-                    // Fields for General Settings section
-                    add_settings_field(
-                        $field_id,
-                        $field[ 'title' ],
-                        [ $this, 'fill_settings_field' ],
-                        $this->model[ 'id' ] . '_settings_page',
-                        $this->model[ 'id' ] . '_' . $group_id . '_' . $section_id . '_section',
-                        [
-                            'id'         => $field_id,
-                            'long_id'    => $group_id . '_' . $section_id . '_' . $field_id,
-                            'type'       => $field[ 'type' ] ?? 'text',
-                            'attributes' => $field[ 'attributes' ] ?? null,
-                        ]
-                    );
+	/**
+	 * Register Settings.
+	 * All options will be stored in Array. Not one value - one option
+	 */
+	function register_settings_page() {
+		foreach ( $this->model['groups'] as $group_id => $group ) {
+			//Whole Setting's Group
+			register_setting(
+				$this->model['id'] . '_options_group',
+				$this->model['id'],
+				'sanitize_callback'
+			);
+			foreach ( $group['sections'] as $section_id => $section ) {
+				//Register Sections
+				add_settings_section(
+					$this->model['id'] . '_' . $group_id . '_' . $section_id . '_section',
+					$section['title'],
+					'',
+					$this->model['id'] . '_settings_page'
+				);
+				foreach ( $section['fields'] as $field_id => $field ) {
+					// Fields for General Settings section
+					add_settings_field(
+						$field_id,
+						$field['title'],
+						[ $this, 'fill_settings_field' ],
+						$this->model['id'] . '_settings_page',
+						$this->model['id'] . '_' . $group_id . '_' . $section_id . '_section',
+						[
+							'id'         => $field_id,
+							'long_id'    => $group_id . '_' . $section_id . '_' . $field_id,
+							'type'       => $field['type'] ?? 'text',
+							'attributes' => $field['attributes'] ?? null,
+						]
+					);
 
-                }
-            }
-        }
-    }
+				}
+			}
+		}
+	}
 
-    /**
-     * Call different methods of render field depends on field type
-     *
-     * @param $args
-     */
-    public function fill_settings_field( $args )
-    {
-        $type_func = 'fill_' . strtolower( $args[ 'type' ] );
+	/**
+	 * Call different methods of render field depends on field type
+	 *
+	 * @param $args
+	 */
+	public function fill_settings_field( $args ) {
+		$type_func = 'fill_' . strtolower( $args['type'] );
 
-        if ( is_callable( [ $this, $type_func ] ) ) {
-            call_user_func( [ $this, $type_func ], $args );
-        }
-    }
+		if ( is_callable( [ $this, $type_func ] ) ) {
+			call_user_func( [ $this, $type_func ], $args );
+		}
+	}
 
-    /**
-     * Renders field with text input
-     *
-     * @param $args
-     */
-    private function fill_text( $args )
-    {
+	/**
+	 * Renders field with text input
+	 *
+	 * @param $args
+	 */
+	private function fill_text( $args ) {
 
-        $val = $this->get_option( $args[ 'long_id' ] );
-        ?>
-        <input class="<?php echo $this->model[ 'id' ] ?>" type="text"
-               name="<?php echo $this->model[ 'id' ] ?>[<?php echo $args[ 'long_id' ] ?>]"
+		$val = $this->get_option( $args['long_id'] );
+		?>
+        <input class="<?php echo $this->model['id'] ?>" type="text"
+               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
                value="<?php echo esc_attr( $val ) ?>"/>
-        <?php
-    }
+		<?php
+	}
 
-    /**
-     * Renders field with text area
-     *
-     * @param $args
-     */
-    private function fill_textarea( $args )
-    {
+	/**
+	 * Renders field with text area
+	 *
+	 * @param $args
+	 */
+	private function fill_textarea( $args ) {
 
-        $val        = $this->get_option( $args[ 'long_id' ] );
-        $attributes = $args[ 'attributes' ] ?? '';
-        ?>
-        <textarea class="<?php echo $this->model[ 'id' ] ?>-input" type="text" <?php echo $attributes ?>
-                  name="<?php echo $this->model[ 'id' ] ?>[<?php echo $args[ 'long_id' ] ?>]"><?php echo esc_attr( $val ) ?></textarea>
+		$val        = $this->get_option( $args['long_id'] );
+		$attributes = $args['attributes'] ?? '';
+		?>
+        <textarea class="<?php echo $this->model['id'] ?>-input" type="text" <?php echo $attributes ?>
+                  name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"><?php echo esc_attr( $val ) ?></textarea>
 		<?php
 	}
 
@@ -182,13 +174,13 @@ class wptSettings
 	 */
 	private function fill_wp_editor( $args ) {
 
-		$val        = $this->get_option( $args[ 'long_id' ] );
-		$attributes = $args[ 'attributes' ] ?? '';
+		$val        = $this->get_option( $args['long_id'] );
+		$attributes = $args['attributes'] ?? '';
 
 		$params = [
 			'wpautop'          => 1,
 			'media_buttons'    => 1,
-			'textarea_name'    => $this->model[ 'id' ] . '[' . $args[ 'long_id' ] . ']',
+			'textarea_name'    => $this->model['id'] . '[' . $args['long_id'] . ']',
 			'textarea_rows'    => 20,
 			'tabindex'         => null,
 			'editor_css'       => '',
@@ -200,7 +192,7 @@ class wptSettings
 			'drag_drop_upload' => false,
 		];
 
-		wp_editor( $val, $this->model[ 'id' ], $params );
+		wp_editor( $val, wp_unique_id( $this->model['id'] ), $params );
 
 	}
 
@@ -210,10 +202,10 @@ class wptSettings
 	 * @param $args
 	 */
 	private function fill_email( $args ) {
-		$val = $this->get_option( $args[ 'long_id' ] );
+		$val = $this->get_option( $args['long_id'] );
 		?>
-        <input class="<?php echo $this->model[ 'id' ] ?>" type="email"
-               name="<?php echo $this->model[ 'id' ] ?>[<?php echo $args[ 'long_id' ] ?>]"
+        <input class="<?php echo $this->model['id'] ?>" type="email"
+               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
                value="<?php echo esc_attr( $val ) ?>"/>
 		<?php
 	}
@@ -225,13 +217,13 @@ class wptSettings
 	 */
 	private function fill_select( $args ) {
 
-		$val        = $this->get_option( $args[ 'long_id' ] );
-		$attributes = $args[ 'attributes' ] ?? '';
-		$options    = $args[ 'options' ] ?? [];
+		$val        = $this->get_option( $args['long_id'] );
+		$attributes = $args['attributes'] ?? '';
+		$options    = $args['options'] ?? [];
 
 		?>
-        <select class="<?php echo $this->model[ 'id' ] ?>-select" <?php echo $attributes ?>
-                name="<?php echo $this->model[ 'id' ] ?>[<?php echo $args[ 'long_id' ] ?>]">
+        <select class="<?php echo $this->model['id'] ?>-select" <?php echo $attributes ?>
+                name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]">
 			<?php
 			foreach ( $options as $key => $option ) {
 				$selected = $key == $val ? ' selected="selected" ' : '';
@@ -247,48 +239,46 @@ class wptSettings
 		<?php
 	}
 
-    /**
-     * Renders field with checkbox
-     *
-     * @param $args
-     */
-    private function fill_checkbox( $args )
-    {
-        $val = $this->get_option( $args[ 'long_id' ] );
-        ?>
-        <input class="<?php echo $this->model[ 'id' ] ?>-input" type="checkbox"
-               name="<?php echo $this->model[ 'id' ] ?>[<?php echo $args[ 'long_id' ] ?>]" <?php echo checked( 'on', $val ) ?> />
-        <?php
-    }
+	/**
+	 * Renders field with checkbox
+	 *
+	 * @param $args
+	 */
+	private function fill_checkbox( $args ) {
+		$val = $this->get_option( $args['long_id'] );
+		?>
+        <input class="<?php echo $this->model['id'] ?>-input" type="checkbox"
+               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]" <?php echo checked( 'on', $val ) ?> />
+		<?php
+	}
 
-    /**
-     * Renders field with password input
-     *
-     * @param $args
-     */
-    private function fill_password( $args )
-    {
+	/**
+	 * Renders field with password input
+	 *
+	 * @param $args
+	 */
+	private function fill_password( $args ) {
 
-        $val = $this->get_option( $args[ 'long_id' ] );
-        ?>
-        <input class="<?php echo $this->model[ 'id' ] ?>-input" type="password"
-               name="<?php echo $this->model[ 'id' ] ?>[<?php echo $args[ 'long_id' ] ?>]"
+		$val = $this->get_option( $args['long_id'] );
+		?>
+        <input class="<?php echo $this->model['id'] ?>-input" type="password"
+               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
                value="<?php echo esc_attr( $val ) ?>"/>
-        <?php
-    }
+		<?php
+	}
 
-    /**
-     * Returns an option with name, passed in $option
-     *
-     * @param $option
-     *
-     * @return mixed|null
-     */
-    public function get_option( $option )
-    {
-        $val = get_option( $this->model[ 'id' ] );
-        return $val[ $option ] ?? null;
-    }
+	/**
+	 * Returns an option with name, passed in $option
+	 *
+	 * @param $option
+	 *
+	 * @return mixed|null
+	 */
+	public function get_option( $option ) {
+		$val = get_option( $this->model['id'] );
+
+		return $val[ $option ] ?? null;
+	}
 
 
 }
