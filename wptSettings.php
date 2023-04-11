@@ -5,11 +5,11 @@
  * to the WordPress plugins, themes, etc.
  * Example of usage see in the readme.txt
  *
- * PHP: 5.3+
+ * PHP: 7.1+
  *
  * @changlog https://github.com/makaravich/wptOptions/blob/main/changelog.md
  *
- * @version 0.0.3
+ * @version 0.0.5
  *
  */
 
