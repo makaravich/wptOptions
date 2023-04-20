@@ -82,17 +82,17 @@ class wptSettings {
 	 */
 	public function options_page_output(): void {
 		?>
-        <div class="wrap">
-            <h2><?php echo get_admin_page_title() ?></h2>
+		<div class="wrap">
+			<h2><?php echo get_admin_page_title() ?></h2>
 
-            <form action="options.php" method="POST">
+			<form action="options.php" method="POST">
 				<?php
 				settings_fields( $this->model['id'] . '_options_group' ); // hidden protection fields
 				do_settings_sections( $this->model['id'] . '_settings_page' ); // Sections with options. We have only single 'woi_section_general'
 				submit_button( $this->model['save_button'] ?? __( 'Save', 'wpt' ) );
 				?>
-            </form>
-        </div>
+			</form>
+		</div>
 		<?php
 	}
 
@@ -129,6 +129,7 @@ class wptSettings {
 							'long_id'    => $group_id . '_' . $section_id . '_' . $field_id,
 							'type'       => $field['type'] ?? 'text',
 							'attributes' => $field['attributes'] ?? null,
+							'options'    => $field['options'] ?? [],
 						]
 					);
 
@@ -159,9 +160,9 @@ class wptSettings {
 
 		$val = $this->get_option( $args['long_id'] );
 		?>
-        <input class="<?php echo $this->model['id'] ?>" type="text"
-               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
-               value="<?php echo esc_attr( $val ) ?>"/>
+		<input class="<?php echo $this->model['id'] ?>" type="text"
+		       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
+		       value="<?php echo esc_attr( $val ) ?>"/>
 		<?php
 	}
 
@@ -175,7 +176,7 @@ class wptSettings {
 		$val        = $this->get_option( $args['long_id'] );
 		$attributes = $args['attributes'] ?? '';
 		?>
-        <textarea class="<?php echo $this->model['id'] ?>-input" type="text" <?php echo $attributes ?>
+		<textarea class="<?php echo $this->model['id'] ?>-input" type="text" <?php echo $attributes ?>
                   name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"><?php echo esc_attr( $val ) ?></textarea>
 		<?php
 	}
@@ -217,9 +218,9 @@ class wptSettings {
 	private function fill_email( $args ): void {
 		$val = $this->get_option( $args['long_id'] );
 		?>
-        <input class="<?php echo $this->model['id'] ?>" type="email"
-               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
-               value="<?php echo esc_attr( $val ) ?>"/>
+		<input class="<?php echo $this->model['id'] ?>" type="email"
+		       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
+		       value="<?php echo esc_attr( $val ) ?>"/>
 		<?php
 	}
 
@@ -235,20 +236,20 @@ class wptSettings {
 		$options    = $args['options'] ?? [];
 
 		?>
-        <select class="<?php echo $this->model['id'] ?>-select" <?php echo $attributes ?>
-                name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]">
+		<select class="<?php echo $this->model['id'] ?>-select" <?php echo $attributes ?>
+		        name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]">
 			<?php
 			foreach ( $options as $key => $option ) {
 				$selected = $key == $val ? ' selected="selected" ' : '';
 				?>
-                <option value="<?php echo $key ?>" <?php echo $selected ?>>
+				<option value="<?php echo $key ?>" <?php echo $selected ?>>
 					<?php echo $option ?>
-                </option>
+				</option>
 				<?php
 			}
 			?>
 
-        </select>
+		</select>
 		<?php
 	}
 
@@ -260,8 +261,8 @@ class wptSettings {
 	private function fill_checkbox( $args ): void {
 		$val = $this->get_option( $args['long_id'] );
 		?>
-        <input class="<?php echo $this->model['id'] ?>-input" type="checkbox"
-               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]" <?php echo checked( 'on', $val ) ?> />
+		<input class="<?php echo $this->model['id'] ?>-input" type="checkbox"
+		       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]" <?php echo checked( 'on', $val ) ?> />
 		<?php
 	}
 
@@ -274,9 +275,9 @@ class wptSettings {
 
 		$val = $this->get_option( $args['long_id'] );
 		?>
-        <input class="<?php echo $this->model['id'] ?>-input" type="password"
-               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
-               value="<?php echo esc_attr( $val ) ?>"/>
+		<input class="<?php echo $this->model['id'] ?>-input" type="password"
+		       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
+		       value="<?php echo esc_attr( $val ) ?>"/>
 		<?php
 	}
 
