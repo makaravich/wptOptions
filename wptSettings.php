@@ -85,7 +85,7 @@ class wptSettings {
 		<div class="wrap">
 			<h2><?php echo get_admin_page_title() ?></h2>
 
-			<form action="options.php" method="POST">
+			<form action="options.php" method="POST" class="wpt-form">
 				<?php
 				settings_fields( $this->model['id'] . '_options_group' ); // hidden protection fields
 				do_settings_sections( $this->model['id'] . '_settings_page' ); // Sections with options. We have only single 'woi_section_general'
