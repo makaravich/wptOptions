@@ -1,0 +1,14 @@
+{
+  "name": "makaravich/wptOptions",
+  "description": "The class allows to easy adding options page to the WordPress plugins, themes, etc",
+  "minimum-stability": "stable",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "makaravich",
+      "email": "dmakar.ski@gmail.com"
+    }
+  ],
+  "require": {
+  }
+}
