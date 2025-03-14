@@ -1,5 +1,5 @@
 {
-  "name": "makaravich/wptOptions",
+  "name": "makaravich/wpt-options",
   "description": "The class allows to easy adding options page to the WordPress plugins, themes, etc",
   "minimum-stability": "stable",
   "license": "GPL-2.0-or-later",
