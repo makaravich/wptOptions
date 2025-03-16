@@ -13,7 +13,7 @@
  *
  */
 
-class wptSettings {
+class WPT_Options {
 	/**
 	 * @var array
 	 */
