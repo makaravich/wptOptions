@@ -3,7 +3,7 @@
         'name' => 'makaravich/wptoptions',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '71878612fc4a60428cf577171d04385f12d8405b',
+        'reference' => '8df5a3e676546eed3a387e22ac3f446fc7913e21',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'makaravich/wptoptions' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '71878612fc4a60428cf577171d04385f12d8405b',
+            'reference' => '8df5a3e676546eed3a387e22ac3f446fc7913e21',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

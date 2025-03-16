@@ -7,8 +7,8 @@
     "ext-json": "*"
   },
   "autoload": {
-    "psr-4": {
-      "Namespace\\": "/"
-    }
+    "classmap": [
+      "src/"
+    ]
   }
 }
