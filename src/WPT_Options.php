@@ -9,7 +9,7 @@
  *
  * @changlog https://github.com/makaravich/wptOptions/blob/main/changelog.md
  *
- * @version 0.0.13
+ * @version 0.0.14
  *
  */
 
@@ -56,22 +56,6 @@ class WPT_Options {
 	public function single_settings_page(): void {
 		add_action( 'admin_menu', [ $this, 'add_options_page' ] );
 		add_action( 'admin_init', [ $this, 'register_settings_page' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_media_scripts' ] );
-	}
-
-	/**
-	 * Enqueue media scripts for image upload functionality
-	 *
-	 * @return void
-	 */
-	public function enqueue_media_scripts(): void {
-		// Check if we're on our settings page
-		$screen = get_current_screen();
-		if ( strpos( $screen->id, $this->model['id'] . '-options' ) !== false ) {
-			wp_enqueue_media();
-			wp_enqueue_script( 'wpt-options-media', '', [ 'jquery' ], '1.0', true );
-			wp_add_inline_script( 'wpt-options-media', $this->get_media_script() );
-		}
 	}
 
 	/**
@@ -80,59 +64,63 @@ class WPT_Options {
 	 * @return string
 	 */
 	private function get_media_script(): string {
-		return "
-		jQuery(document).ready(function($) {
-			var mediaUploader;
-			
-			$('.wpt-image-upload-btn').click(function(e) {
-				e.preventDefault();
-				
-				var button = $(this);
-				var inputField = button.siblings('.wpt-image-input');
-				var previewImage = button.siblings('.wpt-image-preview');
-				var removeButton = button.siblings('.wpt-image-remove-btn');
-				
-				if (mediaUploader) {
-					mediaUploader.open();
-					return;
-				}
-				
-				mediaUploader = wp.media({
-					title: 'Select Image',
-					button: {
-						text: 'Use this Image'
-					},
-					multiple: false,
-					library: {
-						type: 'image'
-					}
-				});
-				
-				mediaUploader.on('select', function() {
-					var attachment = mediaUploader.state().get('selection').first().toJSON();
-					inputField.val(attachment.id);
-					previewImage.attr('src', attachment.url).show();
-					removeButton.show();
-					button.text('Update Image');
-				});
-				
-				mediaUploader.open();
-			});
-			
-			$('.wpt-image-remove-btn').click(function(e) {
-				e.preventDefault();
-				var button = $(this);
-				var inputField = button.siblings('.wpt-image-input');
-				var previewImage = button.siblings('.wpt-image-preview');
-				var uploadButton = button.siblings('.wpt-image-upload-btn');
-				
-				inputField.val('');
-				previewImage.hide();
-				button.hide();
-				uploadButton.text('Select Image');
-			});
-		});
-		";
+		ob_start();
+		?>
+        <script>
+            jQuery(document).ready(function ($) {
+                var mediaUploader;
+
+                $('.wpt-image-upload-btn').click(function (e) {
+                    e.preventDefault();
+
+                    var button = $(this);
+                    var inputField = button.siblings('.wpt-image-input');
+                    var previewImage = button.siblings('.wpt-image-preview');
+                    var removeButton = button.siblings('.wpt-image-remove-btn');
+
+                    if (mediaUploader) {
+                        mediaUploader.open();
+                        return;
+                    }
+
+                    mediaUploader = wp.media({
+                        title: 'Select Image',
+                        button: {
+                            text: 'Use this Image'
+                        },
+                        multiple: false,
+                        library: {
+                            type: 'image'
+                        }
+                    });
+
+                    mediaUploader.on('select', function () {
+                        var attachment = mediaUploader.state().get('selection').first().toJSON();
+                        inputField.val(attachment.id);
+                        previewImage.attr('src', attachment.url).show();
+                        removeButton.show();
+                        button.text('Update Image');
+                    });
+
+                    mediaUploader.open();
+                });
+
+                $('.wpt-image-remove-btn').click(function (e) {
+                    e.preventDefault();
+                    var button = $(this);
+                    var inputField = button.siblings('.wpt-image-input');
+                    var previewImage = button.siblings('.wpt-image-preview');
+                    var uploadButton = button.siblings('.wpt-image-upload-btn');
+
+                    inputField.val('');
+                    previewImage.hide();
+                    button.hide();
+                    uploadButton.text('Select Image');
+                });
+            });
+        </script>
+		<?php
+		return ob_get_clean();
 	}
 
 	/**
@@ -158,17 +146,17 @@ class WPT_Options {
 	 */
 	public function options_page_output(): void {
 		?>
-		<div class="wrap">
-			<h2><?php echo get_admin_page_title() ?></h2>
+        <div class="wrap">
+            <h2><?php echo get_admin_page_title() ?></h2>
 
-			<form action="options.php" method="POST" class="wpt-form">
+            <form action="options.php" method="POST" class="wpt-form">
 				<?php
 				settings_fields( $this->model['id'] . '_options_group' ); // hidden protection fields
 				do_settings_sections( $this->model['id'] . '_settings_page' ); // Sections with options. We have only single 'woi_section_general'
 				submit_button( $this->model['save_button'] ?? __( 'Save', 'wpt' ) );
 				?>
-			</form>
-		</div>
+            </form>
+        </div>
 		<?php
 	}
 
@@ -233,59 +221,62 @@ class WPT_Options {
 	 * @param $args
 	 */
 	private function fill_image( $args ): void {
-		$val = $this->get_option( $args['long_id'] );
-		$image_url = '';
-		$button_text = 'Select image';
+		$val          = $this->get_option( $args['long_id'] );
+		$image_url    = '';
+		$button_text  = 'Select image';
 		$show_preview = false;
-		$show_remove = false;
+		$show_remove  = false;
 
 		if ( $val ) {
 			$image_url = wp_get_attachment_image_url( $val, 'medium' );
 			if ( $image_url ) {
-				$button_text = 'Update Image';
+				$button_text  = 'Update Image';
 				$show_preview = true;
-				$show_remove = true;
+				$show_remove  = true;
 			}
 		}
 		?>
-		<div class="wpt-image-field">
-			<input type="hidden"
-			       class="wpt-image-input"
-			       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
-			       value="<?php echo esc_attr( $val ) ?>"/>
+        <div class="wpt-image-field">
+            <input type="hidden"
+                   class="wpt-image-input"
+                   name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
+                   value="<?php echo esc_attr( $val ) ?>"/>
 
-			<button type="button" class="button wpt-image-upload-btn">
+            <button type="button" class="button wpt-image-upload-btn">
 				<?php echo $button_text ?>
-			</button>
+            </button>
 
-			<button type="button"
-			        class="button wpt-image-remove-btn"
-			        style="<?php echo $show_remove ? '' : 'display:none;' ?>">
-				Удалить изображение
-			</button>
+            <button type="button"
+                    class="button wpt-image-remove-btn"
+                    style="<?php echo $show_remove ? '' : 'display:none;' ?>">
+                Удалить изображение
+            </button>
 
-			<br><br>
+            <br><br>
 
-			<img class="wpt-image-preview"
-			     src="<?php echo esc_url( $image_url ) ?>"
-			     style="max-width: 200px; height: auto; <?php echo $show_preview ? '' : 'display:none;' ?>"
-			     alt="Preview"/>
-		</div>
+            <img class="wpt-image-preview"
+                 src="<?php echo esc_url( $image_url ) ?>"
+                 style="max-width: 200px; height: auto; <?php echo $show_preview ? '' : 'display:none;' ?>"
+                 alt="Preview"/>
+        </div>
 
-		<style>
-		.wpt-image-field {
-			margin: 10px 0;
-		}
-		.wpt-image-preview {
-			border: 1px solid #ddd;
-			padding: 5px;
-			background: #fff;
-		}
-		.wpt-image-upload-btn, .wpt-image-remove-btn {
-			margin-right: 10px;
-		}
-		</style>
+        <style>
+            .wpt-image-field {
+                margin: 10px 0;
+            }
+
+            .wpt-image-preview {
+                border: 1px solid #ddd;
+                padding: 5px;
+                background: #fff;
+            }
+
+            .wpt-image-upload-btn, .wpt-image-remove-btn {
+                margin-right: 10px;
+            }
+        </style>
 		<?php
+		echo $this->get_media_script();
 	}
 
 	/**
@@ -297,9 +288,9 @@ class WPT_Options {
 
 		$val = $this->get_option( $args['long_id'] );
 		?>
-		<input class="<?php echo $this->model['id'] ?>" type="text"
-		       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
-		       value="<?php echo esc_attr( $val ) ?>"/>
+        <input class="<?php echo $this->model['id'] ?>" type="text"
+               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
+               value="<?php echo esc_attr( $val ) ?>"/>
 		<?php
 	}
 
@@ -313,7 +304,7 @@ class WPT_Options {
 		$val        = $this->get_option( $args['long_id'] );
 		$attributes = $args['attributes'] ?? '';
 		?>
-		<textarea class="<?php echo $this->model['id'] ?>-input" type="text" <?php echo $attributes ?>
+        <textarea class="<?php echo $this->model['id'] ?>-input" type="text" <?php echo $attributes ?>
                   name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"><?php echo esc_attr( $val ) ?></textarea>
 		<?php
 	}
@@ -355,9 +346,9 @@ class WPT_Options {
 	private function fill_email( $args ): void {
 		$val = $this->get_option( $args['long_id'] );
 		?>
-		<input class="<?php echo $this->model['id'] ?>" type="email"
-		       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
-		       value="<?php echo esc_attr( $val ) ?>"/>
+        <input class="<?php echo $this->model['id'] ?>" type="email"
+               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
+               value="<?php echo esc_attr( $val ) ?>"/>
 		<?php
 	}
 
@@ -373,20 +364,20 @@ class WPT_Options {
 		$options    = $args['options'] ?? [];
 
 		?>
-		<select class="<?php echo $this->model['id'] ?>-select" <?php echo $attributes ?>
-		        name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]">
+        <select class="<?php echo $this->model['id'] ?>-select" <?php echo $attributes ?>
+                name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]">
 			<?php
 			foreach ( $options as $key => $option ) {
 				$selected = $key == $val ? ' selected="selected" ' : '';
 				?>
-				<option value="<?php echo $key ?>" <?php echo $selected ?>>
+                <option value="<?php echo $key ?>" <?php echo $selected ?>>
 					<?php echo $option ?>
-				</option>
+                </option>
 				<?php
 			}
 			?>
 
-		</select>
+        </select>
 		<?php
 	}
 
@@ -398,8 +389,8 @@ class WPT_Options {
 	private function fill_checkbox( $args ): void {
 		$val = $this->get_option( $args['long_id'] );
 		?>
-		<input class="<?php echo $this->model['id'] ?>-input" type="checkbox"
-		       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]" <?php echo checked( 'on', $val ) ?> />
+        <input class="<?php echo $this->model['id'] ?>-input" type="checkbox"
+               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]" <?php echo checked( 'on', $val ) ?> />
 		<?php
 	}
 
@@ -412,9 +403,9 @@ class WPT_Options {
 
 		$val = $this->get_option( $args['long_id'] );
 		?>
-		<input class="<?php echo $this->model['id'] ?>-input" type="password"
-		       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
-		       value="<?php echo esc_attr( $val ) ?>"/>
+        <input class="<?php echo $this->model['id'] ?>-input" type="password"
+               name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
+               value="<?php echo esc_attr( $val ) ?>"/>
 		<?php
 	}
 
@@ -444,6 +435,7 @@ class WPT_Options {
 		if ( $attachment_id ) {
 			return wp_get_attachment_image_url( $attachment_id, $size );
 		}
+
 		return false;
 	}
 
