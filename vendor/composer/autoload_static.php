@@ -12,7 +12,7 @@ class ComposerStaticInitfb5cee565863abd1d7e90e41eb844dd7
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'WPT_Options' => __DIR__ . '/../..' . '/src/class-WPT_Options.php',
+        'WPT_Options' => __DIR__ . '/../..' . '/src/WPT_Options.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

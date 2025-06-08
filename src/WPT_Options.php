@@ -5,11 +5,11 @@
  * to the WordPress plugins, themes, etc.
  * Example of usage see in the readme.txt
  *
- * PHP: 7.1+
+ * PHP: 8.0+
  *
  * @changlog https://github.com/makaravich/wptOptions/blob/main/changelog.md
  *
- * @version 0.0.5
+ * @version 0.0.11
  *
  */
 
@@ -54,9 +54,85 @@ class WPT_Options {
 	 * @return void
 	 */
 	public function single_settings_page(): void {
-
 		add_action( 'admin_menu', [ $this, 'add_options_page' ] );
 		add_action( 'admin_init', [ $this, 'register_settings_page' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_media_scripts' ] );
+	}
+
+	/**
+	 * Enqueue media scripts for image upload functionality
+	 *
+	 * @return void
+	 */
+	public function enqueue_media_scripts(): void {
+		// Check if we're on our settings page
+		$screen = get_current_screen();
+		if ( strpos( $screen->id, $this->model['id'] . '-options' ) !== false ) {
+			wp_enqueue_media();
+			wp_enqueue_script( 'wpt-options-media', '', [ 'jquery' ], '1.0', true );
+			wp_add_inline_script( 'wpt-options-media', $this->get_media_script() );
+		}
+	}
+
+	/**
+	 * Get JavaScript code for media uploader
+	 *
+	 * @return string
+	 */
+	private function get_media_script(): string {
+		return "
+		jQuery(document).ready(function($) {
+			var mediaUploader;
+			
+			$('.wpt-image-upload-btn').click(function(e) {
+				e.preventDefault();
+				
+				var button = $(this);
+				var inputField = button.siblings('.wpt-image-input');
+				var previewImage = button.siblings('.wpt-image-preview');
+				var removeButton = button.siblings('.wpt-image-remove-btn');
+				
+				if (mediaUploader) {
+					mediaUploader.open();
+					return;
+				}
+				
+				mediaUploader = wp.media({
+					title: 'Select Image',
+					button: {
+						text: 'Use this Image'
+					},
+					multiple: false,
+					library: {
+						type: 'image'
+					}
+				});
+				
+				mediaUploader.on('select', function() {
+					var attachment = mediaUploader.state().get('selection').first().toJSON();
+					inputField.val(attachment.id);
+					previewImage.attr('src', attachment.url).show();
+					removeButton.show();
+					button.text('Update Image');
+				});
+				
+				mediaUploader.open();
+			});
+			
+			$('.wpt-image-remove-btn').click(function(e) {
+				e.preventDefault();
+				var button = $(this);
+				var inputField = button.siblings('.wpt-image-input');
+				var previewImage = button.siblings('.wpt-image-preview');
+				var uploadButton = button.siblings('.wpt-image-upload-btn');
+				
+				inputField.val('');
+				previewImage.hide();
+				button.hide();
+				uploadButton.text('Select Image');
+			});
+		});
+		";
 	}
 
 	/**
@@ -149,6 +225,67 @@ class WPT_Options {
 		if ( is_callable( [ $this, $type_func ] ) ) {
 			call_user_func( [ $this, $type_func ], $args );
 		}
+	}
+
+	/**
+	 * Renders field with image upload
+	 *
+	 * @param $args
+	 */
+	private function fill_image( $args ): void {
+		$val = $this->get_option( $args['long_id'] );
+		$image_url = '';
+		$button_text = 'Select image';
+		$show_preview = false;
+		$show_remove = false;
+
+		if ( $val ) {
+			$image_url = wp_get_attachment_image_url( $val, 'medium' );
+			if ( $image_url ) {
+				$button_text = 'Update Image';
+				$show_preview = true;
+				$show_remove = true;
+			}
+		}
+		?>
+		<div class="wpt-image-field">
+			<input type="hidden"
+			       class="wpt-image-input"
+			       name="<?php echo $this->model['id'] ?>[<?php echo $args['long_id'] ?>]"
+			       value="<?php echo esc_attr( $val ) ?>"/>
+
+			<button type="button" class="button wpt-image-upload-btn">
+				<?php echo $button_text ?>
+			</button>
+
+			<button type="button"
+			        class="button wpt-image-remove-btn"
+			        style="<?php echo $show_remove ? '' : 'display:none;' ?>">
+				Удалить изображение
+			</button>
+
+			<br><br>
+
+			<img class="wpt-image-preview"
+			     src="<?php echo esc_url( $image_url ) ?>"
+			     style="max-width: 200px; height: auto; <?php echo $show_preview ? '' : 'display:none;' ?>"
+			     alt="Preview"/>
+		</div>
+
+		<style>
+		.wpt-image-field {
+			margin: 10px 0;
+		}
+		.wpt-image-preview {
+			border: 1px solid #ddd;
+			padding: 5px;
+			background: #fff;
+		}
+		.wpt-image-upload-btn, .wpt-image-remove-btn {
+			margin-right: 10px;
+		}
+		</style>
+		<?php
 	}
 
 	/**
@@ -292,6 +429,39 @@ class WPT_Options {
 		$val = get_option( $this->model['id'] );
 
 		return $val[ $option ] ?? null;
+	}
+
+	/**
+	 * Get image URL by attachment ID
+	 *
+	 * @param $option string Option name
+	 * @param $size string Image size (thumbnail, medium, large, full)
+	 *
+	 * @return string|false
+	 */
+	public function get_image_url( string $option, string $size = 'full' ): bool|string {
+		$attachment_id = $this->get_option( $option );
+		if ( $attachment_id ) {
+			return wp_get_attachment_image_url( $attachment_id, $size );
+		}
+		return false;
+	}
+
+	/**
+	 * Get image HTML by attachment ID
+	 *
+	 * @param $option string Option name
+	 * @param $size string Image size (thumbnail, medium, large, full)
+	 * @param $attr array Additional attributes
+	 *
+	 * @return string
+	 */
+	public function get_image_html( string $option, string $size = 'full', array $attr = [] ): string {
+		$attachment_id = $this->get_option( $option );
+		if ( $attachment_id ) {
+			return wp_get_attachment_image( $attachment_id, $size, false, $attr );
+		}
+		return '';
 	}
 
 
