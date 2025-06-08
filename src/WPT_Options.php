@@ -9,7 +9,7 @@
  *
  * @changlog https://github.com/makaravich/wptOptions/blob/main/changelog.md
  *
- * @version 0.0.11
+ * @version 0.0.13
  *
  */
 
