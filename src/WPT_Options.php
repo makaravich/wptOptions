@@ -9,7 +9,7 @@
  *
  * @changlog https://github.com/makaravich/wptOptions/blob/main/changelog.md
  *
- * @version 0.0.14
+ * @version 0.0.15
  *
  */
 
@@ -420,6 +420,15 @@ class WPT_Options {
 		$val = get_option( $this->model['id'] );
 
 		return $val[ $option ] ?? null;
+	}
+
+	/**
+	 * Returns the complete model array
+	 *
+	 * @return array
+	 */
+	public function get_model(): array {
+		return $this->model;
 	}
 
 	/**
