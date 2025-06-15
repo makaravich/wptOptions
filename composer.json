@@ -2,7 +2,7 @@
   "name": "makaravich/wptoptions",
   "description": "The class allows to easy adding options page to the WordPress plugins, themes, etc",
   "type": "library",
-  "version": "0.0.14",
+  "version": "0.0.16",
 
   "require": {
     "php": ">=8.0",
